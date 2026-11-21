@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.sbss.lexia.facturacion.dto.FacturacionDtos.ActualizarHonorarioRequest;
 import com.sbss.lexia.facturacion.dto.FacturacionDtos.CatalogosFacturacion;
+import com.sbss.lexia.facturacion.dto.DatosEmisor;
 import com.sbss.lexia.facturacion.dto.FacturacionDtos.DetalleHonorario;
 import com.sbss.lexia.facturacion.dto.FacturacionDtos.ExpedienteOpcion;
 import com.sbss.lexia.facturacion.dto.FacturacionDtos.GuardarHonorarioRequest;
@@ -279,6 +280,42 @@ public class FacturacionRepositoryJdbc {
                                 ? rs.getDate("fecha_vencimiento").toLocalDate()
                                 : null
                 )
+        );
+    }
+
+
+    // =========================================================
+    // DATOS DEL ESTUDIO PARA EL COMPROBANTE
+    // =========================================================
+
+    public DatosEmisor obtenerDatosEmisor(Integer estudioId) {
+
+        List<Map<String, Object>> filas = jdbc.queryForList(
+                """
+                SELECT razon_social, nombre_comercial, ruc,
+                       direccion, telefono, email
+                  FROM estudios
+                 WHERE id = :estudioId
+                """,
+                new MapSqlParameterSource()
+                        .addValue("estudioId", estudioId)
+        );
+
+        if (filas.isEmpty()) {
+            throw new IllegalStateException(
+                    "No se encontraron los datos del estudio."
+            );
+        }
+
+        Map<String, Object> fila = filas.get(0);
+
+        return new DatosEmisor(
+                (String) fila.get("razon_social"),
+                (String) fila.get("nombre_comercial"),
+                (String) fila.get("ruc"),
+                (String) fila.get("direccion"),
+                (String) fila.get("telefono"),
+                (String) fila.get("email")
         );
     }
 
